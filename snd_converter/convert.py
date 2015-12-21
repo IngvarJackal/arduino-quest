@@ -10,9 +10,8 @@ pattern = midi.read_midifile(sys.argv[1])
 
 TIME_DISCRETIZATION = 50.0 # ms
 
-WRAPPER = textwrap.TextWrapper(width=140, break_long_words=False, break_on_hyphens=False)
-
-I = 0
+NOTE_SHIFT = 58-69
+TRACKS = []
 for track in pattern:
     if track[0] != midi.EndOfTrackEvent():
         notes = []
@@ -25,6 +24,10 @@ for track in pattern:
                 notes.append(0)
                 delays.append(int(round(event.tick/TIME_DISCRETIZATION)))
         if len(notes) != 0:
-            print "\n".join(WRAPPER.wrap("byte[] notes " + str(I) + " = {" + ", ".join([str(x).rjust(2) for x in notes]) + "};"))
-            print "\n".join(WRAPPER.wrap("byte[] delays" + str(I) + " = {" + ", ".join([str(x).rjust(2) for x in delays]) + "};"))
-            I += 1
+            TRACKS += [max(0, x+NOTE_SHIFT) for x in notes]
+            TRACKS += [255]
+            TRACKS += delays
+            TRACKS += [255]
+
+with open(sys.argv[1].split(".")[0].upper() + ".SND", "wb") as out:
+    out.write(b"".join([chr(x) for x in TRACKS]))

@@ -41,7 +41,7 @@ byte noteDurations2[] = { 0,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,
 
 void setup(){
   Timer3.initialize(20000);
-  //Timer3.attachInterrupt(processTick);
+  Timer3.attachInterrupt(processTick);
   
   tone1.begin(11);
   tone2.begin(12);
@@ -82,10 +82,12 @@ void processTick() {
 }
 
 bool CUR_IS_FULL;
+char LASTIMG[13];
 char CURIMG[13];
 char CURSONG[13];
 char NEXTFILE[13];
 char* VARNAMES[6];
+byte MAXVAR = 0;
 const char* VARNAMES_DEFAULT[6] = {"", "", "", "", "", ""};
 char* VARFILES[6];
 char TEXT[1024];
@@ -99,6 +101,7 @@ void parseFile(char *filename) {
   TEXT[0] = '\0';
   NEXTFILE[0] = '\0';
   NEXTFILE[13] = '\0';
+  memcpy(LASTIMG, CURIMG, sizeof(CURIMG));
   CURIMG[13] = '\0';
   CURSONG[13] = '\0';
 
@@ -159,8 +162,9 @@ void parseFile(char *filename) {
         }
       }
       if (vartxt[0] != '\0') {
-        vartxt[13] = '\0';
+        //vartxt[13] = '\0';
         VARNAMES[v] = vartxt;
+        MAXVAR = v;
       } else {
         free(vartxt);
       }
@@ -170,27 +174,77 @@ void parseFile(char *filename) {
   myFile.close();
 }
 
-int freeRam () 
-{
+int freeRam() {
   extern int __heap_start, *__brkval; 
   int v; 
   return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
 }
 
+void drawAll() {
+  if (strcmp(LASTIMG,CURIMG) == 0) {
+    drawText();
+  } else {
+    drawImg();
+    drawText();
+  }
+}
+
+void drawText() {
+  emptyTextArea();
+  tft.setColor(VGA_WHITE);
+  int startShift = 0;
+  char line[MAX_X];
+  for (int lineNum=0;; lineNum++) {
+    for (int i=0; i<MAX_X; i++) {
+      line[i] = '\0';
+    }
+    for (int i = startShift; i < sizeof(TEXT); i++) {
+      if (TEXT[i] != '\0' && TEXT[i] != '\n') {
+        line[i-startShift] = TEXT[i];
+      } else {
+        startShift = i+1;
+        break;
+      }
+    }
+    tft.print(line, 160, 10*lineNum);
+    if (TEXT[startShift-1] == '\0') {
+      return;
+    }
+  }
+}
+
+void drawVariants() {
+  emptyTextArea();
+  tft.setColor(VGA_WHITE);
+  for (int i=0; i < MAXVAR; i++) {
+    tft.print(VARNAMES[i], 160,10*i);
+  }
+}
+
+void drawImg() {
+//  tft.clrScr();
+//  tft.setColor(VGA_BLACK);
+//  tft.fillRect(0,0, tft.getDisplayXSize()-1, tft.getDisplayYSize()-1);
+}
+
+void emptyTextArea() {
+  tft.setColor(VGA_BLACK);
+  tft.setBackColor(VGA_TRANSPARENT);
+  tft.fillRect(160, 0, tft.getDisplayXSize()-1, tft.getDisplayYSize()-1);
+}
+
 int y = 0;
 void loop() {
-  tft.clrScr();
-  tft.setColor(VGA_BLACK);
-  tft.fillRect(0,0, tft.getDisplayXSize()-1, tft.getDisplayYSize()-1);
+//  tft.clrScr();
+//  tft.setColor(VGA_BLACK);
+//  tft.fillRect(0,0, tft.getDisplayXSize()-1, tft.getDisplayYSize()-1);
 
   tft.setFont(SmallFont);
   
   tft.setColor(VGA_WHITE);
   tft.setBackColor(VGA_TRANSPARENT);
 
-  parseFile("00000002.TXT");
-
-  
+  parseFile("00000001.TXT");  
 
   /*for (int i=0; i<sizeof(VARFILES)/sizeof(int); i++) {
     tft.print(VARFILES[i], 0, 10*i);
@@ -203,7 +257,7 @@ void loop() {
   }
   tft.printNumI(freeRam(), 0, 200);*/
   
-  Serial.print("CUR_IS_FULL: ");
+  /*Serial.print("CUR_IS_FULL: ");
   Serial.println(CUR_IS_FULL);
   Serial.print("CURIMG: ");
   Serial.println(CURIMG);
@@ -217,9 +271,17 @@ void loop() {
   Serial.println(VARFILES[0]);
   Serial.print("TEXT: ");
   Serial.println(TEXT);
-  Serial.println();
+  Serial.println();*/
 
-  delay(5000);
+  tft.printNumI(freeRam(), 0, 200);
+
+  drawText();
+  
+  delay(2000);
+
+  drawVariants();
+
+  delay(2000);
 
 
   /*File myFile;

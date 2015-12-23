@@ -192,6 +192,7 @@ void drawAll() {
 void drawText() {
   emptyTextArea();
   tft.setColor(VGA_WHITE);
+  tft.setBackColor(VGA_TRANSPARENT);
   int startShift = 0;
   char line[MAX_X];
   for (int lineNum=0;; lineNum++) {
@@ -216,9 +217,19 @@ void drawText() {
 void drawVariants() {
   emptyTextArea();
   tft.setColor(VGA_WHITE);
+  tft.setBackColor(VGA_TRANSPARENT);
   for (int i=0; i < MAXVAR; i++) {
     tft.print(VARNAMES[i], 160,10*i);
   }
+}
+
+void selectVariant(int nVar, int prevVar) {
+  tft.setColor(VGA_WHITE);
+  tft.setBackColor(VGA_BLACK);
+  tft.print(VARNAMES[prevVar], 160, 10*prevVar);
+  tft.setColor(VGA_BLACK);
+  tft.setBackColor(VGA_WHITE);
+  tft.print(VARNAMES[nVar], 160, 10*nVar);
 }
 
 void drawImg() {
@@ -229,13 +240,12 @@ void drawImg() {
 
 void emptyTextArea() {
   tft.setColor(VGA_BLACK);
-  tft.setBackColor(VGA_TRANSPARENT);
   tft.fillRect(160, 0, tft.getDisplayXSize()-1, tft.getDisplayYSize()-1);
 }
 
 int y = 0;
 void loop() {
-//  tft.clrScr();
+  tft.clrScr();
 //  tft.setColor(VGA_BLACK);
 //  tft.fillRect(0,0, tft.getDisplayXSize()-1, tft.getDisplayYSize()-1);
 
@@ -244,7 +254,7 @@ void loop() {
   tft.setColor(VGA_WHITE);
   tft.setBackColor(VGA_TRANSPARENT);
 
-  parseFile("00000001.TXT");  
+  parseFile("00000003.TXT");  
 
   /*for (int i=0; i<sizeof(VARFILES)/sizeof(int); i++) {
     tft.print(VARFILES[i], 0, 10*i);
@@ -279,10 +289,21 @@ void loop() {
   
   delay(2000);
 
-  drawVariants();
+  /*drawVariants();
 
   delay(2000);
 
+  selectVariant(0, 0);
+
+  delay(2000);
+
+  selectVariant(1, 0);
+
+  delay(2000);
+
+  selectVariant(2, 1);
+
+  delay(2000);*/
 
   /*File myFile;
   char privet2[200];

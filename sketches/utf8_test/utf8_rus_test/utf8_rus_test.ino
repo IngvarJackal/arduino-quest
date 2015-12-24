@@ -39,6 +39,41 @@ byte noteDurations2[] = { 0,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,
                         };
 
 
+
+byte colors[] = {
+    0, 0, 0,
+    34, 32, 52,
+    69, 40, 60,
+    102, 57, 49,
+    143, 86, 59,
+    223, 113, 38,
+    217, 160, 102,
+    238, 195, 154,
+    251, 242, 54,
+    153, 229, 80,
+    106, 190, 48,
+    55, 148, 110,
+    75, 105, 47,
+    82, 75, 36,
+    50, 60, 57,
+    63, 63, 116,
+    48, 96, 130,
+    91, 110, 225,
+    99, 155, 255,
+    95, 205, 228,
+    203, 219, 252,
+    255, 255, 255,
+    155, 173, 183,
+    132, 126, 135,
+    105, 106, 106,
+    89, 86, 82,
+    118, 66, 138,
+    172, 50, 50,
+    217, 87, 99,
+    215, 123, 186,
+    143, 151, 74,
+    138, 111, 48};
+
 void setup(){
   Timer3.initialize(20000);
   Timer3.attachInterrupt(processTick);
@@ -232,11 +267,33 @@ void selectVariant(int nVar, int prevVar) {
   tft.print(VARNAMES[nVar], 160, 10*nVar);
 }
 
-void drawImg() {
-//  tft.clrScr();
-//  tft.setColor(VGA_BLACK);
-//  tft.fillRect(0,0, tft.getDisplayXSize()-1, tft.getDisplayYSize()-1);
+void setPixel(byte r, byte g, byte b, int x, int y) {
+  tft.setColor(r,g,b);
+  tft.drawPixel(x*2,y*2); tft.drawPixel(x*2+1,y*2);
+  tft.drawPixel(x*2,y*2+1); tft.drawPixel(x*2+1,y*2+1);
 }
+
+void drawImg() {
+  emptyImageArea();
+  myFile = SD.open(CURIMG);
+  int rowLen = myFile.read()*256;
+  rowLen += myFile.read();
+  int row = 0;
+  for (int col=0; myFile.available(); col++) {
+    if (col%rowLen == 0 && col != 0) {
+      row++;
+    }
+    char color = myFile.read();
+    setPixel(colors[color*3 + 0], colors[color*3 + 1], colors[color*3 + 2], col%rowLen, row);
+  }
+}
+
+
+void emptyImageArea() {
+  tft.setColor(VGA_BLACK);
+  tft.fillRect(0, 0, 160-1, tft.getDisplayYSize()-1);
+}
+
 
 void emptyTextArea() {
   tft.setColor(VGA_BLACK);
@@ -254,7 +311,7 @@ void loop() {
   tft.setColor(VGA_WHITE);
   tft.setBackColor(VGA_TRANSPARENT);
 
-  parseFile("00000003.TXT");  
+  parseFile("00000002.TXT");  
 
   /*for (int i=0; i<sizeof(VARFILES)/sizeof(int); i++) {
     tft.print(VARFILES[i], 0, 10*i);
@@ -286,7 +343,11 @@ void loop() {
   tft.printNumI(freeRam(), 0, 200);
 
   drawText();
-  
+
+  delay(2000);
+
+  drawImg();
+
   delay(2000);
 
   /*drawVariants();

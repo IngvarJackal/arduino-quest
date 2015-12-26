@@ -8,9 +8,9 @@ if len(sys.argv) != 2:
 
 pattern = midi.read_midifile(sys.argv[1])
 
-TIME_DISCRETIZATION = 50.0 # ms
+TIME_DISCRETIZATION = 5.0 # ms
 
-NOTE_SHIFT = 58-69
+NOTE_SHIFT = 58-68
 TRACKS = []
 for track in pattern:
     if track[0] != midi.EndOfTrackEvent():

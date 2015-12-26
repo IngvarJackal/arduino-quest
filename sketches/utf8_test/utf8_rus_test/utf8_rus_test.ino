@@ -11,7 +11,7 @@ extern uint8_t SmallFont[];
 Tone tone1;
 Tone tone2;
 
-int melody[] =  {880,  0, 784,  0, 523,  0, 880,  0, 784,  0, 523,  0, 880,  0, 523,  0, 784,  0, 659,  0, 494,  0, 784,  0, 659,  0, 494,
+/*int melody[] =  {880,  0, 784,  0, 523,  0, 880,  0, 784,  0, 523,  0, 880,  0, 523,  0, 784,  0, 659,  0, 494,  0, 784,  0, 659,  0, 494,
                  0, 784,  0, 659,  0, 523,  0, 440,  0, 659,  0, 523,  0, 440,  0, 659,  0, 523,  0, 440,  0, 659,  0, 523,  0, 494,  0, 440,  0, 494,  0,
                  523,  0, 659,  0, 784,  0, 880,  0, 698,  0, 523,  0, 880,  0, 698,  0, 523,  0, 1047,  0, 988,  0, 784,  0, 659,  0, 494,  0, 392,  0, 330,
                  0, 392,  0, 440,  0, 494,  0, 523,  0, 440,  0, 330,  0, 523,  0, 440,  0, 330,  0, 523,  0, 330,  0, 523,  0, 440,  0, 330,  0, 523,  0,
@@ -36,10 +36,8 @@ byte noteDurations2[] = { 0,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,
                           6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,
                           6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,
                           6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6
-                        };
-
-
-
+                        };*/
+                        
 byte colors[] = {
     0, 0, 0,
     34, 32, 52,
@@ -74,8 +72,8 @@ byte colors[] = {
     143, 151, 74,
     138, 111, 48};
 
-void setup(){
-  Timer3.initialize(20000);
+void setup() {
+  Timer3.initialize(2500);
   Timer3.attachInterrupt(processTick);
   
   tone1.begin(11);
@@ -87,33 +85,8 @@ void setup(){
   Serial.begin(9600);
 }
 
-int curnote = -1;
-int curlen = -1;
-int curnote2 = -1;
-int curlen2 = -1;
-void playSound(int tick) {
-  if (curlen <= 0) {
-    curnote += 1;
-    curlen = noteDurations[curnote % 127];
-    if (melody[curnote % 127] == 0) {
-      tone1.stop();
-    } else {
-      tone1.play(melody[curnote % 127]);
-    }
-      if (melody2[curnote % 127] == 0) {
-      tone2.stop();
-    } else {
-      tone2.play(melody2[curnote % 127]);
-    }
-  } else {
-    curlen--;
-  }
-}
-
-int tick = 0;
 void processTick() {
-  tick++;
-  playSound(tick);
+  playSound();
 }
 
 bool CUR_IS_FULL;
@@ -209,6 +182,89 @@ void parseFile(char *filename) {
   myFile.close();
 }
 
+unsigned char melody[256];
+unsigned char noteDurations[256];
+unsigned char melody2[256];
+unsigned char noteDurations2[256];
+
+unsigned char curnote = 0;
+unsigned char curnote2 = 0;
+
+unsigned char curlen = -1;
+unsigned char curlen2 = -1;
+
+bool songIsReady = false;
+
+void playSound() {
+  if (!songIsReady ) {
+    return;
+  }
+
+  if (noteDurations[curnote] == 255 || noteDurations2[curnote2] == 255) {
+    curnote = 0;
+    curlen = noteDurations[curnote];
+    curnote2 = 0;
+    curlen2 = noteDurations2[curnote2];
+  }
+  
+  if (curlen <= 0) {
+    curnote++;
+    curlen = noteDurations[curnote];
+    
+    if (melody[curnote] == 0) {
+      tone1.stop();
+    } else {
+      tone1.play(TONES[melody[curnote]]);
+    }    
+  } else {
+    curlen--;
+  }
+
+  if (curlen2 <= 0) {
+    curnote2++;
+    curlen2 = noteDurations2[curnote2];
+    
+    if (melody2[curnote2] == 0) {
+      tone2.stop();
+    } else {
+      tone2.play(TONES[melody2[curnote2]]);
+    }    
+  } else {
+    curlen2--;
+  }
+}
+
+void loadSong() {
+  myFile = SD.open(CURSONG);
+  unsigned char c;
+  for (char i=0; ; i++) {
+    c = myFile.read();
+    melody[i] = c;
+    if (c == 0xFF)
+      break;
+  }
+  for (char i=0; ; i++) {
+    c = myFile.read();
+    noteDurations[i] = c;
+    if (c == 0xFF)
+      break;
+  }
+  for (char i=0; ; i++) {
+    c = myFile.read();
+    melody2[i] = c;
+    if (c == 0xFF)
+      break;
+  }
+  for (char i=0; ; i++) {
+    c = myFile.read();
+    noteDurations2[i] = c;
+    if (c == 0xFF)
+      break;
+  }
+  myFile.close();
+  songIsReady = true;
+}
+
 int freeRam() {
   extern int __heap_start, *__brkval; 
   int v; 
@@ -286,6 +342,7 @@ void drawImg() {
     char color = myFile.read();
     setPixel(colors[color*3 + 0], colors[color*3 + 1], colors[color*3 + 2], col%rowLen, row);
   }
+  myFile.close();
 }
 
 
@@ -311,7 +368,7 @@ void loop() {
   tft.setColor(VGA_WHITE);
   tft.setBackColor(VGA_TRANSPARENT);
 
-  parseFile("00000002.TXT");  
+  parseFile("00000001.TXT");
 
   /*for (int i=0; i<sizeof(VARFILES)/sizeof(int); i++) {
     tft.print(VARFILES[i], 0, 10*i);
@@ -344,11 +401,15 @@ void loop() {
 
   drawText();
 
-  delay(2000);
+  /*delay(2000);
 
   drawImg();
 
-  delay(2000);
+  delay(2000);*/
+  
+  loadSong();
+
+  delay(150000);
 
   /*drawVariants();
 

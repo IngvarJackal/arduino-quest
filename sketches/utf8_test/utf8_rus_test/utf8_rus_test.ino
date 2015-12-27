@@ -5,6 +5,10 @@
 #include <SPI.h>
 #include <SD.h>
 
+const char PIN_UP = 7;
+const char PIN_ENTER = 6;
+const char PIN_DOWN = 5;
+
 UTFT tft(CTE32HR,38,39,40,41);
 extern uint8_t SmallFont[];
 
@@ -82,6 +86,12 @@ void setup() {
   tft.InitLCD(LANDSCAPE);
   SD.begin(53);
 
+  pinMode(PIN_UP, INPUT_PULLUP);
+  pinMode(PIN_ENTER, INPUT_PULLUP);
+  pinMode(PIN_DOWN, INPUT_PULLUP);
+
+  tft.setFont(SmallFont);
+
   Serial.begin(9600);
 }
 
@@ -93,9 +103,12 @@ bool CUR_IS_FULL;
 char LASTIMG[13];
 char CURIMG[13];
 char CURSONG[13];
+char PREVSONG[13];
 char NEXTFILE[13];
 char* VARNAMES[6];
 byte MAXVAR = 0;
+char CURVAR = 0;
+char PREVVAR = 0;
 const char* VARNAMES_DEFAULT[6] = {"", "", "", "", "", ""};
 char* VARFILES[6];
 char TEXT[1024];
@@ -110,8 +123,12 @@ void parseFile(char *filename) {
   NEXTFILE[0] = '\0';
   NEXTFILE[13] = '\0';
   memcpy(LASTIMG, CURIMG, sizeof(CURIMG));
+  memcpy(PREVSONG, CURSONG, sizeof(CURSONG));
   CURIMG[13] = '\0';
   CURSONG[13] = '\0';
+
+  CURVAR = 0;
+  PREVVAR = 0;
 
   for (int i=0; i<sizeof(VARNAMES)/sizeof(int); i++) {
     if (VARNAMES[i] != "") {
@@ -235,6 +252,9 @@ void playSound() {
 }
 
 void loadSong() {
+  if (strcmp(PREVSONG, CURSONG) == 0) {
+    return;
+  }
   myFile = SD.open(CURSONG);
   unsigned char c;
   for (char i=0; ; i++) {
@@ -275,8 +295,8 @@ void drawAll() {
   if (strcmp(LASTIMG,CURIMG) == 0) {
     drawText();
   } else {
-    drawImg();
     drawText();
+    drawImg();
   }
 }
 
@@ -312,16 +332,18 @@ void drawVariants() {
   for (int i=0; i < MAXVAR; i++) {
     tft.print(VARNAMES[i], 160,10*i);
   }
+  selectVariant();
 }
 
-void selectVariant(int nVar, int prevVar) {
+void selectVariant() {
   tft.setColor(VGA_WHITE);
   tft.setBackColor(VGA_BLACK);
-  tft.print(VARNAMES[prevVar], 160, 10*prevVar);
+  tft.print(VARNAMES[PREVVAR], 160, 10*PREVVAR);
   tft.setColor(VGA_BLACK);
   tft.setBackColor(VGA_WHITE);
-  tft.print(VARNAMES[nVar], 160, 10*nVar);
+  tft.print(VARNAMES[CURVAR], 160, 10*CURVAR);
 }
+
 
 void setPixel(byte r, byte g, byte b, int x, int y) {
   tft.setColor(r,g,b);
@@ -357,93 +379,35 @@ void emptyTextArea() {
   tft.fillRect(160, 0, tft.getDisplayXSize()-1, tft.getDisplayYSize()-1);
 }
 
+void readInput() {
+  while (true) {
+    if (digitalRead(PIN_UP) == 0 && CURVAR > 0) {
+      PREVVAR = CURVAR;
+      CURVAR--;
+      selectVariant();
+      delay(250);
+    } else if (digitalRead(PIN_ENTER) == 0) {
+      return;
+    } else if (digitalRead(PIN_DOWN) == 0 && CURVAR < MAXVAR-1) {
+      PREVVAR = CURVAR;
+      CURVAR++;
+      selectVariant();
+      delay(250);
+    }
+  }
+}
+
 int y = 0;
 void loop() {
   tft.clrScr();
-//  tft.setColor(VGA_BLACK);
-//  tft.fillRect(0,0, tft.getDisplayXSize()-1, tft.getDisplayYSize()-1);
-
-  tft.setFont(SmallFont);
-  
-  tft.setColor(VGA_WHITE);
-  tft.setBackColor(VGA_TRANSPARENT);
-
-  parseFile("00000001.TXT");
-
-  /*for (int i=0; i<sizeof(VARFILES)/sizeof(int); i++) {
-    tft.print(VARFILES[i], 0, 10*i);
-    if (SD.exists(VARFILES[i])) {
-      tft.print("EXISTS", 14*8, 10*i);
-    } else {
-      tft.print("NOT EXISTS", 14*8, 10*i);
-    }
-    Serial.println(VARFILES[i]);
-  }
-  tft.printNumI(freeRam(), 0, 200);*/
-  
-  /*Serial.print("CUR_IS_FULL: ");
-  Serial.println(CUR_IS_FULL);
-  Serial.print("CURIMG: ");
-  Serial.println(CURIMG);
-  Serial.print("CURSONG: ");
-  Serial.println(CURSONG);
-  Serial.print("NEXTFILE: ");
-  Serial.println(NEXTFILE);
-  Serial.print("VARNAMES[0]: ");
-  Serial.println(VARNAMES[0]);
-  Serial.print("VARFILES[0]: ");
-  Serial.println(VARFILES[0]);
-  Serial.print("TEXT: ");
-  Serial.println(TEXT);
-  Serial.println();*/
-
   tft.printNumI(freeRam(), 0, 200);
-
-  drawText();
-
-  /*delay(2000);
-
-  drawImg();
-
-  delay(2000);*/
+  delay(1000);
   
+  parseFile("00000001.TXT");
   loadSong();
+  drawAll();
+  delay(6000);
 
-  delay(150000);
-
-  /*drawVariants();
-
-  delay(2000);
-
-  selectVariant(0, 0);
-
-  delay(2000);
-
-  selectVariant(1, 0);
-
-  delay(2000);
-
-  selectVariant(2, 1);
-
-  delay(2000);*/
-
-  /*File myFile;
-  char privet2[200];
-  int c;
-  myFile = SD.open("1.TXT");
-  for (int i=0; myFile.available(); i++) {
-      privet2[i] = myFile.read();
-      if (i > 0 && i%2==0)
-        c = privet2[i];
-        c = c * 256;
-        c = c + privet2[i] - 1;
-        Serial.println(c);
-  }
-
-  myFile.close();
-
-  printRus(tft, privet2, 0, 195,0);
-  printRus(tft, privet2, 0, 205,0);
-  
-  Serial.println(strlen(privet2));*/
+  drawVariants();
+  readInput();
 }

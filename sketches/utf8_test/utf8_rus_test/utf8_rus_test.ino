@@ -14,33 +14,6 @@ extern uint8_t SmallFont[];
 
 Tone tone1;
 Tone tone2;
-
-/*int melody[] =  {880,  0, 784,  0, 523,  0, 880,  0, 784,  0, 523,  0, 880,  0, 523,  0, 784,  0, 659,  0, 494,  0, 784,  0, 659,  0, 494,
-                 0, 784,  0, 659,  0, 523,  0, 440,  0, 659,  0, 523,  0, 440,  0, 659,  0, 523,  0, 440,  0, 659,  0, 523,  0, 494,  0, 440,  0, 494,  0,
-                 523,  0, 659,  0, 784,  0, 880,  0, 698,  0, 523,  0, 880,  0, 698,  0, 523,  0, 1047,  0, 988,  0, 784,  0, 659,  0, 494,  0, 392,  0, 330,
-                 0, 392,  0, 440,  0, 494,  0, 523,  0, 440,  0, 330,  0, 523,  0, 440,  0, 330,  0, 523,  0, 330,  0, 523,  0, 440,  0, 330,  0, 523,  0,
-                 587,  0, 494,  0, 392,  0, 494,  0
-                };
-
-
-byte noteDurations[] = { 0,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,
-                         21,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  3,
-                         3,  3,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3, 21,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  3,  3,  3,  3,
-                         9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3,  9,  3
-                       };
-
-int melody2[] = {175,  0, 175,  0, 175,  0, 175,  0, 175,  0, 175,  0, 175,  0, 175,  0, 165,  0, 165,  0, 165,  0, 165,  0, 165,  0, 165,
-                 0, 165,  0, 165,  0, 110,  0, 110,  0, 110,  0, 110,  0, 110,  0, 110,  0, 110,  0, 110,  0, 110,  0, 110,  0, 110,  0, 110,  0, 110,  0,
-                 110,  0, 110,  0, 110,  0, 175,  0, 175,  0, 175,  0, 175,  0, 175,  0, 175,  0, 175,  0, 175,  0, 165,  0, 165,  0, 165,  0, 165,  0, 165,
-                 0, 165,  0, 165,  0, 165,  0, 110,  0, 110,  0, 110,  0, 110,  0, 110,  0, 110,  0, 110,  0, 110,  0, 110,  0, 110,  0, 110,  0, 110,  0,
-                 98,  0, 98,  0, 98,  0, 98,  0
-                };
-
-byte noteDurations2[] = { 0,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,
-                          6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,
-                          6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,
-                          6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6
-                        };*/
                         
 byte colors[] = {
     0, 0, 0,
@@ -104,7 +77,7 @@ char LASTIMG[13];
 char CURIMG[13];
 char CURSONG[13];
 char PREVSONG[13];
-char NEXTFILE[13];
+char NEXTFILE[13] = "";
 char* VARNAMES[6];
 byte MAXVAR = 0;
 char CURVAR = 0;
@@ -120,12 +93,15 @@ File myFile;
 
 void parseFile(char *filename) {
   TEXT[0] = '\0';
+  Serial.println(filename);
   NEXTFILE[0] = '\0';
   NEXTFILE[13] = '\0';
   memcpy(LASTIMG, CURIMG, sizeof(CURIMG));
   memcpy(PREVSONG, CURSONG, sizeof(CURSONG));
   CURIMG[13] = '\0';
   CURSONG[13] = '\0';
+
+  
 
   CURVAR = 0;
   PREVVAR = 0;
@@ -146,9 +122,11 @@ void parseFile(char *filename) {
     for (int i=0; i<12; i++) {
       CURIMG[i] = myFile.read();
     }
+    Serial.println(CURIMG);
     for (int i=0; i<12 && myFile.available(); i++) {
       NEXTFILE[i] = myFile.read();
     }
+    Serial.println(NEXTFILE);
   } else {
     for (int i=0; i<12; i++) {
       CURIMG[i] = myFile.read();
@@ -379,6 +357,18 @@ void emptyTextArea() {
   tft.fillRect(160, 0, tft.getDisplayXSize()-1, tft.getDisplayYSize()-1);
 }
 
+void waitForEnter() {
+  while (true) {
+    if (digitalRead(PIN_UP) == 0) {
+      return;
+    } else if (digitalRead(PIN_ENTER) == 0) {
+      return;
+    } else if (digitalRead(PIN_DOWN) == 0) {
+      return;
+    }
+  }
+}
+
 void readInput() {
   while (true) {
     if (digitalRead(PIN_UP) == 0 && CURVAR > 0) {
@@ -387,6 +377,7 @@ void readInput() {
       selectVariant();
       delay(250);
     } else if (digitalRead(PIN_ENTER) == 0) {
+      memcpy(NEXTFILE, VARNAMES[CURVAR], sizeof(VARNAMES[CURVAR]));
       return;
     } else if (digitalRead(PIN_DOWN) == 0 && CURVAR < MAXVAR-1) {
       PREVVAR = CURVAR;
@@ -397,17 +388,21 @@ void readInput() {
   }
 }
 
-int y = 0;
 void loop() {
-  tft.clrScr();
-  tft.printNumI(freeRam(), 0, 200);
-  delay(1000);
-  
-  parseFile("00000001.TXT");
+  if (NEXTFILE[0] == '\0') {
+    NEXTFILE[0]='0'; NEXTFILE[1]='0'; NEXTFILE[2]='0'; NEXTFILE[3]='0';
+    NEXTFILE[4]='0'; NEXTFILE[5]='0'; NEXTFILE[6]='0'; NEXTFILE[7]='0';
+    NEXTFILE[8]='.'; NEXTFILE[9]='T'; NEXTFILE[10]='X'; NEXTFILE[11]='T';
+    NEXTFILE[12]='\0';
+  }
+  parseFile("00000000.TXT");
   loadSong();
   drawAll();
-  delay(6000);
-
-  drawVariants();
-  readInput();
+  if (CUR_IS_FULL) {
+    waitForEnter();
+  } else {
+    waitForEnter();
+    drawVariants();
+    readInput();
+  }
 }

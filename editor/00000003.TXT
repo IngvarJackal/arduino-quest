@@ -1,14 +1,9 @@
-0SAMPLE3.SNDSAMPLE01.BIN  iHiciAli3Acim ................. dA  
-MAoduX BEPif .................. dA  
-PEjiM OTlAdKi ................. dA  
-pEtATb <liTAHim:OtihEHim.s> ...
-10 +++ liTAHim <eKCTEPMiHATuC.s> +++
-20 MAoduX BpEPad();
-30  ECli EPECb() == "HAlitECTBuET" TO
-40   BsBOd: "HujHO 3BATb iHKBi3icik";
-50   dlm OB i3 EPETiK::
-60    fpEt("%E\pK" % EPETiK[OB]);
-70   DIXI;
-80 ClABAiMpEPATOPu;
-  i3rmTb p3u .................. dA
-  pPiCTupiTb K iCpOlHEHik ....|BpOClEdCTBii OKA3AlOCb00000010.TXTKOdOBAm CTPAHicA00000011.TXT B KOTOPsX HijHkk00000012.TXTdOpOlHiTElbHsE CiMBOls00000013.TXT
+0SAMPLE3.SNDSAMPLE01.BINpPOgPAMMiPuEMAm lOgitECKAm iHTEgPAlbHAm
+CXEMA (pliC, AHgl. PROGRAMMABLE LOGIC
+DEVICE, PLD)  elEKTPOHHsy KOMpOHEHT,
+iCpOlb3uEMsy dlm CO3dAHim cifPOBsX
+iHTEgPAlbHsX CXEM. B OTlitiE OT OvstHsX
+cifPOBsX MiKPOCXEM, lOgiKA PAvOTs pliC
+HE OpPEdElmETCm pPi i3gOTOBlEHii, A
+3AdAaTCm pOCPEdCTBOM pPOgPAMMiPOBAHim
+(pPOEKTiPOBAHim).99999999.TXT

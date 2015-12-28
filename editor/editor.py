@@ -147,6 +147,7 @@ def new(newanswer=True):
         ANSWER_FRAMES.append(answerFrame(answerTable, len(ANSWER_FRAMES)))
     reloadAnswers()
     nextSceneButton.config(text="Pick scene")
+    musicButton.config(text="Pick soundtrack")
     mainText.delete("1.0",END)
 
 def open_file():

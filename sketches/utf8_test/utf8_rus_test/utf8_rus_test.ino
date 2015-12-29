@@ -79,7 +79,7 @@ char CURSONG[13];
 char PREVSONG[13];
 char NEXTFILE[13] = "";
 char* VARNAMES[6];
-byte MAXVAR = 0;
+char MAXVAR = 0;
 char CURVAR = 0;
 char PREVVAR = 0;
 const char* VARNAMES_DEFAULT[6] = {"", "", "", "", "", ""};
@@ -93,15 +93,10 @@ File myFile;
 
 void parseFile(char *filename) {
   TEXT[0] = '\0';
-  Serial.println(filename);
-  NEXTFILE[0] = '\0';
-  NEXTFILE[13] = '\0';
   memcpy(LASTIMG, CURIMG, sizeof(CURIMG));
   memcpy(PREVSONG, CURSONG, sizeof(CURSONG));
   CURIMG[13] = '\0';
-  CURSONG[13] = '\0';
-
-  
+  CURSONG[13] = '\0';  
 
   CURVAR = 0;
   PREVVAR = 0;
@@ -115,19 +110,23 @@ void parseFile(char *filename) {
   
   memcpy(VARNAMES, VARNAMES_DEFAULT, sizeof(VARNAMES_DEFAULT));
   myFile = SD.open(filename);
+  
+  NEXTFILE[0] = '\0';
+  NEXTFILE[13] = '\0';
+  
   for (int i=0; i<12; i++) {
     CURSONG[i] = myFile.read();
   }
   if (myFile.read() == FULL_START) {
+    CUR_IS_FULL = true;
     for (int i=0; i<12; i++) {
       CURIMG[i] = myFile.read();
     }
-    Serial.println(CURIMG);
     for (int i=0; i<12 && myFile.available(); i++) {
       NEXTFILE[i] = myFile.read();
     }
-    Serial.println(NEXTFILE);
   } else {
+    CUR_IS_FULL = false;
     for (int i=0; i<12; i++) {
       CURIMG[i] = myFile.read();
     }
@@ -307,7 +306,7 @@ void drawVariants() {
   emptyTextArea();
   tft.setColor(VGA_WHITE);
   tft.setBackColor(VGA_TRANSPARENT);
-  for (int i=0; i < MAXVAR; i++) {
+  for (int i=0; i <= MAXVAR; i++) {
     tft.print(VARNAMES[i], 160,10*i);
   }
   selectVariant();
@@ -377,9 +376,9 @@ void readInput() {
       selectVariant();
       delay(250);
     } else if (digitalRead(PIN_ENTER) == 0) {
-      memcpy(NEXTFILE, VARNAMES[CURVAR], sizeof(VARNAMES[CURVAR]));
+      memcpy(NEXTFILE, VARFILES[CURVAR], 13);
       return;
-    } else if (digitalRead(PIN_DOWN) == 0 && CURVAR < MAXVAR-1) {
+    } else if (digitalRead(PIN_DOWN) == 0 && CURVAR < MAXVAR) {
       PREVVAR = CURVAR;
       CURVAR++;
       selectVariant();
@@ -395,14 +394,17 @@ void loop() {
     NEXTFILE[8]='.'; NEXTFILE[9]='T'; NEXTFILE[10]='X'; NEXTFILE[11]='T';
     NEXTFILE[12]='\0';
   }
-  parseFile("00000000.TXT");
+  parseFile(NEXTFILE);
   loadSong();
   drawAll();
   if (CUR_IS_FULL) {
     waitForEnter();
   } else {
-    waitForEnter();
-    drawVariants();
+    if (MAXVAR > 0) {
+      waitForEnter();
+      drawVariants();
+      waitForEnter();
+    }
     readInput();
   }
 }
